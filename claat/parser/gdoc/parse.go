@@ -81,7 +81,7 @@ const (
 	commentPrefix = "#cmnt"
 
 	// the google.com redirector service
-	redirectorPrefix = "https://www.google.com/url?q="
+	redirectorPrefix = "https://www.google.com/url"
 )
 
 var (
@@ -276,6 +276,9 @@ func finalizeStep(s *types.Step) {
 		if t, ok := l.Nodes[len(l.Nodes)-1].(*nodes.TextNode); !ok || t.Value != metaTagClose {
 			continue
 		}
+		if len(l.Nodes) < 3 {
+			continue
+		}
 		// second element is a text in bold
 		t, ok := l.Nodes[1].(*nodes.TextNode)
 		if !ok || !t.Bold || t.Italic || t.Code {
@@ -412,7 +415,13 @@ func metaTable(ds *docState) {
 		case "feedback", "feedback_link":
 			ds.clab.Feedback = s
 		case "analytics", "analytics_account", "google_analytics":
-			ds.clab.GA = s
+			if strings.HasPrefix(s, "G-") {
+				ds.clab.GA4 = s
+			} else {
+				ds.clab.GA = s
+			}
+		case "analytics_ga4", "analytics_ga4_account":
+			ds.clab.GA4 = s
 		default:
 			// If not explicitly parsed, it might be a pass_metadata value.
 			if _, ok := ds.passMetadata[fieldName]; ok {
@@ -452,7 +461,10 @@ func metaStep(ds *docState) {
 			if err != nil {
 				continue
 			}
-			d += time.Duration(vi) * durFactor[len(durFactor)-len(parts)+i]
+			idx := len(durFactor) - len(parts) + i
+			if idx >= 0 && idx < len(durFactor) {
+				d += time.Duration(vi) * durFactor[idx]
+			}
 		}
 		ds.step.Duration = roundDuration(d)
 		ds.totdur += ds.step.Duration
@@ -811,11 +823,7 @@ func link(ds *docState) nodes.Node {
 
 	// re-write google.com redirector URLs
 	if strings.HasPrefix(href, redirectorPrefix) {
-		href = strings.TrimPrefix(href, redirectorPrefix)
-		h, err := url.QueryUnescape(href)
-		if err == nil {
-			href = h
-		}
+		href = parseRedirectURL(href)
 	}
 
 	t := nodes.NewTextNode(nodes.NewTextNodeOptions{
@@ -931,4 +939,23 @@ func roundDuration(d time.Duration) time.Duration {
 		rd += time.Minute
 	}
 	return rd
+}
+
+func parseRedirectURL(href string) string {
+	redirectURL, err := url.Parse(href)
+	if err != nil {
+		return href
+	}
+	// Manually encode semicolons
+	encodedRawQuery := strings.Replace(redirectURL.RawQuery, ";", "%3B", -1)
+	// Parse and decode query
+	queries, err := url.ParseQuery(encodedRawQuery)
+	if err != nil {
+		return href
+	}
+	qVals, ok := queries["q"]
+	if !ok || len(qVals) == 0 {
+		return href
+	}
+	return qVals[0]
 }

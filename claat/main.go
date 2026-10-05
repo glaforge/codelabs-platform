@@ -44,10 +44,11 @@ var (
 	authToken    = flag.String("auth", "", "OAuth2 Bearer token; alternative credentials override.")
 	expenv       = flag.String("e", "web", "codelab environment")
 	extra        = flag.String("extra", "", "Additional arguments to pass to format templates. JSON object of string,string key values.")
-	globalGA     = flag.String("ga", "UA-49880327-14", "global Google Analytics account")
+	globalGA     = flag.String("ga", "", "global Google Analytics account (legacy Universal Analytics)")
+	globalGA4    = flag.String("ga4", "", "global Google Analytics 4 measurement ID (e.g. G-XXXXXXX)")
 	output       = flag.String("o", ".", "output directory or '-' for stdout")
 	passMetadata = flag.String("pass_metadata", "", "Metadata fields to pass through to the output. Comma-delimited list of field names.")
-	prefix       = flag.String("prefix", "https://storage.googleapis.com", "URL prefix for html format")
+	prefix       = flag.String("prefix", "https://cdn.jsdelivr.net/gh/googlecodelabs/tools@master/site/app/elements/codelab-elements", "URL prefix for html format")
 	tmplout      = flag.String("f", "html", "output format")
 )
 
@@ -80,6 +81,7 @@ func main() {
 			Expenv:       *expenv,
 			ExtraVars:    extraVars,
 			GlobalGA:     *globalGA,
+			GlobalGA4:    *globalGA4,
 			Output:       *output,
 			PassMetadata: pm,
 			Prefix:       *prefix,
@@ -93,6 +95,7 @@ func main() {
 			AuthToken:    *authToken,
 			ExtraVars:    extraVars,
 			GlobalGA:     *globalGA,
+			GlobalGA4:    *globalGA4,
 			PassMetadata: pm,
 			Prefix:       *prefix,
 		})

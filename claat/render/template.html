@@ -15,15 +15,47 @@ the License.
 -->
 <!doctype html>
 <!-- This is the default template for 'html' output format of the tool -->
-<html>
+<html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <meta name="theme-color" content="#4F7DC9">
   <meta charset="UTF-8">
   <title>{{.Meta.Title}}</title>
-  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
-  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
-  <link rel="stylesheet" href="{{.Prefix}}/claat-public/codelab-elements.css">
+  {{if .Meta.Summary}}<meta name="description" content="{{.Meta.Summary}}">{{end}}
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{{.Meta.Title}}">
+  {{if .Meta.Summary}}<meta property="og:description" content="{{.Meta.Summary}}">{{end}}
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{.Meta.Title}}">
+  {{if .Meta.Summary}}<meta name="twitter:description" content="{{.Meta.Summary}}">{{end}}
+
+  <!-- Font optimization -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+  <link rel="stylesheet" href="{{.Prefix}}/codelab-elements.css">
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": {{.Meta.Title | printf "%q"}},
+    {{if .Meta.Summary}}"description": {{.Meta.Summary | printf "%q"}},{{end}}
+    {{if .Meta.Authors}}"author": {
+      "@type": "Person",
+      "name": {{.Meta.Authors | printf "%q"}}
+    },{{end}}
+    "timeRequired": "PT{{.Meta.Duration}}M"
+  }
+  </script>
+
   <style>
     .success {
       color: #1e8e3e;
@@ -48,10 +80,10 @@ the License.
     {{end}}{{end}}
   </google-codelab>
 
-  <script src="{{.Prefix}}/claat-public/native-shim.js"></script>
-  <script src="{{.Prefix}}/claat-public/custom-elements.min.js"></script>
-  <script src="{{.Prefix}}/claat-public/prettify.js"></script>
-  <script src="{{.Prefix}}/claat-public/codelab-elements.js"></script>
+  <script src="{{.Prefix}}/native-shim.js"></script>
+  <script src="{{.Prefix}}/custom-elements.min.js"></script>
+  <script src="{{.Prefix}}/prettify.js"></script>
+  <script src="{{.Prefix}}/codelab-elements.js"></script>
   <script src="//support.google.com/inapp/api.js"></script>
 
 </body>

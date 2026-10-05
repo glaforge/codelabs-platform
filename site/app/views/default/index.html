@@ -72,6 +72,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <meta name="msapplication-TileImage" content="/images/favicons/mstile-144x144.png">
   <meta name="theme-color" content="#455a64">
 
+  <meta name="robots" content="index, follow">
+
   <meta name="og:type" property="og:type" content="website" />
   <meta name="og:title" property="og:title" content="{{view.title}}" />
   <meta name="og:description" property="og:description" content="{{view.description}}" />
@@ -91,6 +93,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <meta name="twitter:description" property="twitter:description" content="{{view.description}}" />
   <meta name="twitter:image" property="twitter:image" content="/images/og-image.png" />
   <meta name="twitter:url" property="twitter:url" content="{{canonicalViewUrl(view)}}" />
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "{{view.title}}",
+    "url": "{{canonicalViewUrl(view)}}",
+    "description": "{{view.description}}"
+  }
+  </script>
 </head>
 
 <body id="app" is="body-bind" class="loading fullbleed {% if view.id != 'default' -%}view{%- endif -%}">
@@ -99,7 +112,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <div id="mainToolbar" class="paper-header">
       <div class="site-width layout horizontal">
         <a href="/">
-          <img src="/images/logo.png" class="logo-devs" alt="Codelabs Logo">
+          <img src="/images/logo.png" class="logo-devs" width="216" height="36" alt="Codelabs Logo">
         </a>
         <div id="searchbar">
           <paper-input-container no-label-float>

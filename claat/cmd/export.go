@@ -42,6 +42,8 @@ type CmdExportOptions struct {
 	ExtraVars map[string]string
 	// GlobalGA is the global Google Analytics account to use.
 	GlobalGA string
+	// GlobalGA4 is the global Google Analytics 4 measurement ID to use.
+	GlobalGA4 string
 	// Output is the output directory, or "-" for stdout.
 	Output string
 	// PassMetadata are the extra metadata fields to pass along.
@@ -122,6 +124,7 @@ func ExportCodelab(src string, rt http.RoundTripper, opts CmdExportOptions) (*ty
 		Format:  opts.Tmplout,
 		Prefix:  opts.Prefix,
 		MainGA:  opts.GlobalGA,
+		MainGA4: opts.GlobalGA4,
 		Updated: &lastmod,
 	})
 }
@@ -141,6 +144,7 @@ func ExportCodelabMemory(src io.ReadCloser, w io.Writer, opts CmdExportOptions) 
 		Format:  opts.Tmplout,
 		Prefix:  opts.Prefix,
 		MainGA:  opts.GlobalGA,
+		MainGA4: opts.GlobalGA4,
 		Updated: &lastmod,
 	}
 
@@ -156,14 +160,15 @@ func writeCodelabWriter(w io.Writer, clab *types.Codelab, extraVars map[string]s
 		Prev    bool
 		Next    bool
 	}{Context: render.Context{
-		Env:      ctx.Env,
-		Prefix:   ctx.Prefix,
-		Format:   ctx.Format,
-		GlobalGA: ctx.MainGA,
-		Updated:  time.Time(*ctx.Updated).Format(time.RFC3339),
-		Meta:     &clab.Meta,
-		Steps:    clab.Steps,
-		Extra:    extraVars,
+		Env:       ctx.Env,
+		Prefix:    ctx.Prefix,
+		Format:    ctx.Format,
+		GlobalGA:  ctx.MainGA,
+		GlobalGA4: ctx.MainGA4,
+		Updated:   time.Time(*ctx.Updated).Format(time.RFC3339),
+		Meta:      &clab.Meta,
+		Steps:     clab.Steps,
+		Extra:     extraVars,
 	}}
 
 	if ctx.Format == "offline" {
@@ -199,11 +204,12 @@ func writeCodelab(dir string, clab *types.Codelab, extraVars map[string]string, 
 		Prev    bool
 		Next    bool
 	}{Context: render.Context{
-		Env:      ctx.Env,
-		Prefix:   ctx.Prefix,
-		Format:   ctx.Format,
-		GlobalGA: ctx.MainGA,
-		Updated:  time.Time(*ctx.Updated).Format(time.RFC3339),
+		Env:       ctx.Env,
+		Prefix:    ctx.Prefix,
+		Format:    ctx.Format,
+		GlobalGA:  ctx.MainGA,
+		GlobalGA4: ctx.MainGA4,
+		Updated:   time.Time(*ctx.Updated).Format(time.RFC3339),
 		Meta:     &clab.Meta,
 		Steps:    clab.Steps,
 		Extra:    extraVars,

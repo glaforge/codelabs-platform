@@ -13,7 +13,7 @@ const htmlmin = require('gulp-htmlmin');
 const merge = require('merge-stream');
 const postcss = require('gulp-html-postcss');
 const rename = require('gulp-rename');
-const sass = require('gulp-sass');
+const sass = require('gulp-sass')(require('sass'));
 const through = require('through2');
 const useref = require('gulp-useref');
 const vulcanize = require('gulp-vulcanize');
@@ -163,6 +163,30 @@ gulp.task('build:html', () => {
   return merge(...streams);
 });
 
+// build:sitemap generates a sitemap.xml containing all views and codelabs.
+gulp.task('build:sitemap', (done) => {
+  const meta = collectMetadata();
+  let urls = [`  <url>\n    <loc>${BASE_URL}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>`];
+
+  Object.keys(meta.views).forEach((id) => {
+    if (id !== 'default') {
+      urls.push(`  <url>\n    <loc>${BASE_URL}/${id}/</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`);
+    }
+  });
+
+  meta.codelabs.forEach((codelab) => {
+    if (codelab.status.indexOf('hidden') === -1) {
+      const codelabPath = path.join(CODELABS_NAMESPACE, codelab.id, '/');
+      const lastmod = codelab.updated ? `\n    <lastmod>${new Date(codelab.updated).toISOString().split('T')[0]}</lastmod>` : '';
+      urls.push(`  <url>\n    <loc>${BASE_URL}/${codelabPath}</loc>${lastmod}\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`);
+    }
+  });
+
+  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+  fs.outputFileSync(path.join('build', 'sitemap.xml'), sitemapXml);
+  done();
+});
+
 // build:images builds all the images into the build directory.
 gulp.task('build:images', () => {
   const srcs = [
@@ -234,6 +258,7 @@ gulp.task('build', gulp.series(
   'build:css',
   'build:scss',
   'build:html',
+  'build:sitemap',
   'build:images',
   'build:js',
   'build:elements_js',

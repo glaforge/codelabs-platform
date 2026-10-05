@@ -78,8 +78,11 @@ var (
 	convertedImportsSuffix     = []byte("-->")
 )
 
-var metadataRegexp = regexp.MustCompile(`(.+?):(.+)`)
-var languageRegexp = regexp.MustCompile(`language-(.+)`)
+var (
+	metadataRegexp    = regexp.MustCompile(`(.+?):(.+)`)
+	languageRegexp    = regexp.MustCompile(`language-(.+)`)
+	frontMatterRegexp = regexp.MustCompile(`(?s)^\s*---\r?\n(.*?)\r?\n---\r?\n`)
+)
 
 var (
 	// durFactor is a slice of duration parser multipliers,
@@ -231,14 +234,41 @@ func (ds *docState) appendNodes(nn ...nodes.Node) {
 
 // renderToHTML preprocesses Markdown bytes and then calls a Markdown parser on the Markdown.
 // It takes a raw markdown bytes and outputs parsed xhtml in bytes.
-func renderToHTML(b []byte) ([]byte, error) {
+func renderToHTML(b []byte) (outBytes []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("markdown parser panic: %v", r)
+		}
+	}()
+	b = stripFrontMatter(b)
 	b = convertImports(b)
-	gmParser := goldmark.New(goldmark.WithRendererOptions(gmhtml.WithUnsafe()), goldmark.WithExtensions(extension.Typographer, extension.Table))
+	gmParser := goldmark.New(
+		goldmark.WithRendererOptions(gmhtml.WithUnsafe()),
+		goldmark.WithExtensions(
+			extension.Typographer,
+			extension.Table,
+			extension.DefinitionList,
+			extension.Strikethrough,
+		),
+	)
 	var out bytes.Buffer
 	if err := gmParser.Convert(b, &out); err != nil {
-		panic(err)
+		return nil, err
 	}
 	return out.Bytes(), nil
+}
+
+func stripFrontMatter(b []byte) []byte {
+	if loc := frontMatterRegexp.FindSubmatchIndex(b); len(loc) >= 4 {
+		content := b[loc[2]:loc[3]]
+		rest := b[loc[1]:]
+		var buf bytes.Buffer
+		buf.Write(content)
+		buf.WriteString("\n\n")
+		buf.Write(rest)
+		return buf.Bytes()
+	}
+	return b
 }
 
 // parseMarkup accepts html nodes to markup created by the Markdown parser. It returns a pointer to a codelab object, or an error if one occurs.
@@ -438,10 +468,12 @@ func addMetadataToCodelab(m map[string]string, c *types.Codelab, opts parser.Opt
 			// Directly assign the feedback link to the codelab field.
 			c.Feedback = v
 		case MetaAnalyticsAccount:
-			// Directly assign the GA id to the codelab field.
-			c.GA = v
+			if strings.HasPrefix(v, "G-") {
+				c.GA4 = v
+			} else {
+				c.GA = v
+			}
 		case MetaAnalyticsGa4Account:
-			// Directly assign the GA id to the codelab field.
 			c.GA4 = v
 		case MetaTags:
 			// Standardize the tags and append to the codelab field.

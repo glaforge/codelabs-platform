@@ -416,3 +416,69 @@ I'm going to inject some HTML
 		})
 	}
 }
+
+func TestInfoboxDefinitionList(t *testing.T) {
+	input := stdHeader + `
+## Step 1
+
+Positive
+: This is a positive note
+
+Negative
+: This is a negative warning
+`
+	lab := mustParseCodelab(input, *parser.NewOptions())
+	if len(lab.Steps) != 1 {
+		t.Fatalf("expected 1 step, got %d", len(lab.Steps))
+	}
+	contentNodes := lab.Steps[0].Content.Nodes
+	var infoboxes []*nodes.InfoboxNode
+	for _, n := range contentNodes {
+		if ib, ok := n.(*nodes.InfoboxNode); ok {
+			infoboxes = append(infoboxes, ib)
+		}
+	}
+	if len(infoboxes) != 2 {
+		t.Fatalf("expected 2 infoboxes, got %d", len(infoboxes))
+	}
+	if infoboxes[0].Kind != nodes.InfoboxPositive {
+		t.Errorf("expected first infobox to be Positive, got %v", infoboxes[0].Kind)
+	}
+	if infoboxes[1].Kind != nodes.InfoboxNegative {
+		t.Errorf("expected second infobox to be Negative, got %v", infoboxes[1].Kind)
+	}
+}
+
+func TestYAMLFrontMatter(t *testing.T) {
+	input := `---
+id: test-yaml-codelab
+summary: Summary of test yaml
+authors: John Doe
+categories: cloud,go
+tags: web,kiosk
+layout: paginated
+---
+
+# Test YAML Codelab
+
+## Step 1
+Duration: 03:00
+
+Content of step 1.
+`
+	lab := mustParseCodelab(input, *parser.NewOptions())
+	if lab.ID != "test-yaml-codelab" {
+		t.Errorf("expected ID 'test-yaml-codelab', got %q", lab.ID)
+	}
+	if lab.Summary != "Summary of test yaml" {
+		t.Errorf("expected Summary 'Summary of test yaml', got %q", lab.Summary)
+	}
+	if lab.Authors != "John Doe" {
+		t.Errorf("expected Authors 'John Doe', got %q", lab.Authors)
+	}
+	if len(lab.Steps) != 1 {
+		t.Fatalf("expected 1 step, got %d", len(lab.Steps))
+	}
+}
+
+

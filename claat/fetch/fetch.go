@@ -273,6 +273,9 @@ func (f *Fetcher) slurpBytes(codelabSrc, dir, imgURL string, imgBytes []byte) (s
 
 		// If the codelab source is being downloaded from the network, then we should interpret
 		// the image URL in the same way.
+		if u.Scheme == "" && u.Host != "" {
+			u.Scheme = "https"
+		}
 		srcURL, err := url.Parse(codelabSrc)
 		if err == nil && srcURL.Host != "" {
 			u = srcURL.ResolveReference(u)
@@ -357,7 +360,11 @@ func (f *Fetcher) fetchRemote(urlStr string, nometa bool) (*resource, error) {
 // fetchRemoteFile retrieves codelab resource from url.
 // It is a special case of fetchRemote function.
 func (f *Fetcher) fetchRemoteFile(url string) (*resource, error) {
-	res, err := retryGet(f.authHelper.DriveClient(), url, 3)
+	var client *http.Client
+	if f.authHelper != nil {
+		client = f.authHelper.DriveClient()
+	}
+	res, err := retryGet(client, url, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +429,11 @@ func (f *Fetcher) fetchDriveFile(id string, nometa bool) (*resource, error) {
 }
 
 func (f *Fetcher) slurpRemoteBytes(url string, n int) ([]byte, error) {
-	res, err := retryGet(f.authHelper.DriveClient(), url, n)
+	var client *http.Client
+	if f.authHelper != nil {
+		client = f.authHelper.DriveClient()
+	}
+	res, err := retryGet(client, url, n)
 	if err != nil {
 		return nil, err
 	}
