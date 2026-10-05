@@ -4,28 +4,150 @@ Bug or feature request? File it [here](https://github.com/googlecodelabs/tools/i
 
 ## Getting Started
 
-Copy [this template doc](https://docs.google.com/document/d/1E6XMcdTexh5O8JwGy42SY3Ehzi8gOfUGiqTiUX6N04o/edit) as a starting point and then iteratively mutate the metadata and contents to your liking, following the formatting rules described below.
+You can author Google Codelabs using either **Markdown** or **Google Docs**:
 
-To preview a codelab:
+* **Markdown (Recommended for code tutorials & Git workflows)**: Write your tutorial in a single Markdown file (e.g. `codelab.md`). Compile, export, and preview it locally using the `claat` command-line tool.
+* **Google Docs**: Copy [this template doc](https://docs.google.com/document/d/1E6XMcdTexh5O8JwGy42SY3Ehzi8gOfUGiqTiUX6N04o/edit) as a starting point and iteratively mutate the metadata and contents following the Google Docs formatting rules described below.
 
--  (optional one-time setup) Install the [Preview Codelab Chrome extension](https://chrome.google.com/webstore/detail/preview-codelab/lhojjnijnkiglhkggagbapfonpdlinji) in your browser.
+### Previewing a Codelab
 
-- Click the Chrome extension's button while you're in your codelab Google Doc tab, or
-- Navigate manually to **https://codelabs-preview.appspot.com/?file_id=[google-doc-id]**.
+* **Markdown (`claat`)**:
+  ```bash
+  claat export codelab.md
+  claat serve
+  ```
+  Open `http://localhost:9090` in your browser.
+* **Google Docs**:
+  * (Optional one-time setup) Install the [Preview Codelab Chrome extension](https://chrome.google.com/webstore/detail/preview-codelab/lhojjnijnkiglhkggagbapfonpdlinji) in your browser.
+  * Click the Chrome extension's button while viewing your Google Doc, or navigate manually to `https://codelabs-preview.appspot.com/?file_id=[google-doc-id]`.
 
-## Formatting Reference
+---
+
+## Authoring in Markdown
+
+### 1. Document Structure & Frontmatter
+
+Markdown codelabs start with a YAML frontmatter block enclosed in `---` delimiters. A blank line must follow the closing `---` before the main `# Title` heading.
+
+```yaml
+---
+id: my-awesome-codelab
+summary: Learn how to build applications using Google Cloud and AI.
+authors: Your Name
+categories: cloud,web
+tags: cloud,kiosk,web
+status: Published
+feedback_link: https://github.com/example/repo/issues
+analytics_account: G-XXXXXXXXXX
+---
+
+# Title of the Codelab
+```
+
+#### Frontmatter Fields
+* **`id`** *(required)*: Lowercase, hyphen-separated, URL-safe string. Used as the output directory name when exported.
+* **`summary`** *(required)*: Short, single-line description under 200 characters displayed on index cards and meta descriptions.
+* **`authors`**: Comma-separated or string list of author names.
+* **`categories`**: Comma-separated list used to group codelabs into category tabs on landing pages.
+* **`tags`** / **`environments`**: Discoverability and target environment tags (e.g. `web`, `kiosk`).
+* **`status`**: Progress indicator (`Draft`, `Published`, `Deprecated`, `Hidden`).
+* **`feedback_link`**: URL where users can report issues or provide feedback.
+* **`analytics_account`**: Google Analytics 4 Measurement ID (e.g. `G-XXXXXXXXXX`) or legacy Universal Analytics ID.
+*(Note: Do not define `duration` in the frontmatter; total duration is automatically calculated by `claat` from individual step durations).*
+
+### 2. Steps & Headings
+
+* **Document Title**: Only **one H1 (`#`)** heading is allowed in the entire file.
+* **Step Headings**: Each step is defined by an **H2 heading (`##`)**.
+  > ⚠️ **Do NOT prefix step headings with numbers** (e.g., write `## Set up the environment`, **NOT** `## 2. Set up the environment`). The web component automatically renders the step number (`${step + 1}. ${label}`). Adding a manual number causes duplicated numbering like `2. 2. Set up the environment`.
+* **Step Titles**: Use imperative verb phrases (e.g. `## Create a Cloud Storage bucket`).
+* **Step Duration**: Every H2 step must include an estimated duration on the line immediately following the heading:
+  ```markdown
+  ## Set up your project
+  Duration: 05:00
+  ```
+  *(Format: `mm:ss` or `hh:mm:ss`)*
+* **Subsections**: Use Heading 3 (`###`) and Heading 4 (`####`) inside steps.
+* **Standard Step Flow**:
+  1. `## Welcome` or `## Before you begin` (including "What you'll do" and "What you'll need").
+  2. Core instruction and hands-on steps.
+  3. `## Clean up` (or `## Clean up resources`) to avoid ongoing costs.
+  4. `## Congratulations` (with summary and next step documentation links).
+
+### 3. Markdown Formatting & Custom Elements
+
+* **Callout Boxes / Asides**:
+  * Positive (Tips / Best Practices):
+    ```markdown
+    > aside positive
+    > **Tip**: You can use auto-numbering by starting list items with `1.`.
+    ```
+  * Negative (Warnings / Pitfalls / Billing):
+    ```markdown
+    > aside negative
+    > **Caution**: Forgetting to delete resources will result in billing charges.
+    ```
+* **Download Buttons**: Wrap a link inside a `<button>` HTML tag:
+  ```markdown
+  <button>[Download Project Code](https://example.com/project.zip)</button>
+  ```
+  If the link text begins with "Download", a download icon is rendered automatically.
+* **Code Blocks & Syntax Highlighting**: Use fenced code blocks with language identifiers:
+  ````markdown
+  ```go
+  func main() {
+      fmt.Println("Hello Codelab")
+  }
+  ```
+  ````
+* **Console / Terminal Outputs**: Use the `console` or `bash` identifier:
+  ````markdown
+  ```console
+  Operation "operations/..." finished successfully.
+  ```
+  ````
+* **YouTube Embeds**:
+  ```html
+  <video id="DWAinkJ54AP8"></video>
+  ```
+* **Inline Interactive Surveys**: Rendered from a single-cell Markdown table:
+  ```markdown
+  | -------------------------------------------------------------------------------- |
+  | ### What is your level of experience with Go?                                   |
+  |                                                                                  |
+  | - [ ] Beginner                                                                   |
+  | - [ ] Intermediate / Advanced                                                    |
+  | -------------------------------------------------------------------------------- |
+  ```
+* **Shared Fragment Imports**: Import reusable markdown snippets across codelabs:
+  ```markdown
+  <<shared/_common_prereqs.md>>
+  ```
+  *(Shared fragment filenames should start with an underscore `_` to avoid being exported as standalone codelabs).*
+* **Images**: Store images in a relative `img/` directory:
+  ```markdown
+  ![Architecture Diagram](img/architecture.png)
+  ```
+* **Audio**:
+  ```html
+  <audio controls src="img/narration.mp3"></audio>
+  ```
+
+---
+
+## Authoring in Google Docs
+
+### Formatting Reference
 
 1. Table of Contents
 
-    Every codelab document must use the **Heading 1** paragraph style to delineate the steps of the codelab. In turn, these headings will be used to automatically create a Table of Contents which shows the student exactly where they are in the codelab and lets them jump to any step.
+    Every Google Doc codelab document must use the **Heading 1** paragraph style to delineate the steps of the codelab. In turn, these headings will be used to automatically create a Table of Contents which shows the student exactly where they are in the codelab and lets them jump to any step.
 
     The table of contents disappears for smaller browsers but is still available from the hamburger menu.
 
 1. Codelab Metadata (Google Docs)
 
     There is some additional metadata that is required in order to properly publish a codelab. This metadata should be added as a **two-column table** anywhere before the first step of the codelab. For example:
-
-
 
     You are free to add your own metadata here if you'd like but certain key/value pairs are reserved for specific codelab publishing features. The current list of reserved metadata terms are:
 
@@ -37,25 +159,7 @@ You can also use this to target specific events, for instance:  \
 "Web, polymer-summit" (without quotes)
     * **Status:** One or more of (Draft, Published, Deprecated, Hidden) to indicate the progress and whether the codelab is ready to be published. 'Hidden' implies the codelab is for restricted use, should be available only by direct URL, and should not appear on the main index page.
     * **Feedback Link:** The URL that the student should be sent to when they click on the feedback link to report a bug in the codelab.
-    * **Analytics Account:** This allows you to specify a custom Google Analytics ID for your codelab. If no ID is specified, it defaults to a global codelabs analytics account.
-
-1. Codelab Metadata (Markdown)
-
-    You are free to add your own metadata here if you'd like but certain key/value pairs are reserved for specific codelab publishing features. The current list of reserved metadata terms are:
-
-    * **summary:** A short summary of the codelab that will be shown in the codelab browser UI.
-    * **id:** The name of the folder that will be generated once you export the markdown file via claat.
-    * **categories:** A single, top-level category that will be used to group codelabs by platform. Categories are normally curated by an organization (e.g. we have a set we use for the Google Codelabs site) but each publisher is free to use this value at their discretion.
-    * **environments**: A tag that allows use to output some codelabs for a specific environment. All codelabs default to the "Web" environment but given some hardware constraints we might only want to generate them for a "Kiosk" environment where we know people will have the right hardware. \
-You can also use this to target specific events, for instance:  \
-"Web, polymer-summit" (without quotes)
-    * **status:** One or more of (Draft, Published, Deprecated, Hidden) to indicate the progress and whether the codelab is ready to be published. 'Hidden' implies the codelab is for restricted use, should be available only by direct URL, and should not appear on the main index page.
-    * **feedback link:** The URL that the student should be sent to when they click on the feedback link to report a bug in the codelab.
-    * **analytics account:** This allows you to specify a custom Google Analytics ID for your codelab. If no ID is specified, it defaults to a global codelabs analytics account.
-    * **tags:** Add relevant tags to make your codelab easily found.
-    * **authors:** Indicate the author(s) of this specific codelab.
-
-1. Headers
+    * **Analytics Account:** This allows you to specify a custom Google Analytics ID (GA4 `G-XXXXXXXXXX` or legacy) for your codelab. If no ID is specified, it defaults to a global codelabs analytics account.
 
     Within the steps of your codelab you should use the **Heading 2**, **Heading 3** and **Heading 4** paragraph styles to organize your content. These will get translated to `<h2>`, `<h3>` and `<h4>` tags in the codelab markup.
 
@@ -196,4 +300,12 @@ You can also use this to target specific events, for instance:  \
 
 ## Things to avoid
 
+### Markdown
+- **Step numbering in headings**: Do not write `## 1. Step Name` or `## 2. ...`. The web component automatically numbers steps, which leads to duplicate numbers (e.g., `1. 1. Step Name`).
+- **Missing blank line after frontmatter**: Always ensure an empty newline separates `---` from the `# Title` heading.
+- **Multiple H1 headers**: Only one H1 (`#`) heading should be present in the document.
+- **Duration in frontmatter**: Total duration is computed automatically by `claat` from individual step `Duration: mm:ss` annotations.
+- **Unescaped `<details>` blocks around big text dumps**: Use external Markdown files (`[Details](details.md)`) instead of raw HTML disclosure blocks that might interfere with block parsing.
+
+### Google Docs
 - **Footers:** Any characters included in the footer (beyond the default page number) result in parsing bugs. For this reason, page footers are not recommended.
